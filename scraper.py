@@ -1,20 +1,14 @@
 import feedparser
 import json
-import smtplib
 import os
 import math
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
+import resend
 
 # ── Configuration ────────────────────────────────────────────────────────────
 MAX_PRICE = 4000
 ALERT_EMAIL = "loganmoyal@github.com"
 
-# M365 / Office 365 SMTP credentials (set as GitHub Actions secrets)
-SMTP_USER     = os.environ.get("SMTP_USER")       # your M365 email address
-SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD")   # your M365 password or app password
-SMTP_SERVER   = "smtp.office365.com"
-SMTP_PORT     = 587
+resend.api_key = os.environ.get("RESEND_API_KEY")
 
 # Anchor points with max straight-line walking radius in miles
 # (straight-line * ~1.3 ≈ actual city walking distance)
@@ -92,8 +86,8 @@ def save_seen(seen):
 # ── Email ─────────────────────────────────────────────────────────────────────
 
 def send_email(matches):
-    if not SMTP_USER or not SMTP_PASSWORD:
-        print("⚠️  Email credentials not set — skipping email.")
+    if not resend.api_key:
+        print("⚠️  RESEND_API_KEY not set — skipping email.")
         return
 
     count = len(matches)
@@ -122,19 +116,13 @@ def send_email(matches):
     </body></html>
     """
 
-    msg = MIMEMultipart("alternative")
-    msg["Subject"] = subject
-    msg["From"] = SMTP_USER
-    msg["To"] = ALERT_EMAIL
-    msg.attach(MIMEText(html, "html"))
-
-    with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
-        server.ehlo()
-        server.starttls()
-        server.login(SMTP_USER, SMTP_PASSWORD)
-        server.sendmail(SMTP_USER, ALERT_EMAIL, msg.as_string())
-
-    print(f"✅ Email sent with {count} match(es).")
+    resend.Emails.send({
+        "from": "SF Apartment Bot <onboarding@resend.dev>",
+        "to": [ALERT_EMAIL],
+        "subject": subject,
+        "html": html,
+    })
+    print(f"✅ Email sent via Resend with {count} match(es).")
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────

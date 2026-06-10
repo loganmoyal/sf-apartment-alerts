@@ -12,27 +12,25 @@ Automatically monitors Craigslist San Francisco for new apartments matching your
 
 ## ⚙️ One-Time Setup (Required)
 
-### Step 1 — Create a Gmail App Password
+### Step 1 — Get a Free Resend API Key
 
-You need a dedicated password for this bot (not your real Gmail password).
+[Resend](https://resend.com) is a free email API (3,000 emails/month). No account credentials needed — just a single API key.
 
-1. Go to your Google Account → **Security** → **2-Step Verification** (must be enabled)
-2. Search for **"App passwords"** at [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords)
-3. Create a new app password — name it `sf-apartment-bot`
-4. Copy the 16-character password
+1. Sign up free at [resend.com](https://resend.com)
+2. Go to **API Keys** → **Create API key** (name it `sf-apartment-bot`)
+3. Copy the key (starts with `re_...`)
 
-### Step 2 — Add Secrets to GitHub
+> If the key ever leaks, just revoke it from the Resend dashboard — your real accounts are never at risk.
+
+### Step 2 — Add the Secret to GitHub
 
 1. Go to your repo: [github.com/loganmoyal/sf-apartment-alerts](https://github.com/loganmoyal/sf-apartment-alerts)
 2. Click **Settings** → **Secrets and variables** → **Actions** → **New repository secret**
-3. Add these two secrets:
+3. Add one secret:
 
 | Secret Name | Value |
 |---|---|
-| `SMTP_USER` | Your M365/work email address (e.g. `loganmoyal@github.com`) |
-| `SMTP_PASSWORD` | Your M365 password (or app password if MFA is on) |
-
-> **If SMTP is blocked by IT:** Use a free personal email relay like [Resend](https://resend.com) — just ask and I can update the code to use that instead.
+| `RESEND_API_KEY` | Your Resend API key (e.g. `re_abc123...`) |
 
 ### Step 3 — Enable GitHub Actions & First Run
 
