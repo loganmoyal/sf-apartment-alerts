@@ -29,14 +29,30 @@ You need a dedicated password for this bot (not your real Gmail password).
 
 | Secret Name | Value |
 |---|---|
-| `GMAIL_USER` | Your Gmail address (e.g. `you@gmail.com`) |
-| `GMAIL_APP_PASSWORD` | The 16-character app password from Step 1 |
+| `SMTP_USER` | Your M365/work email address (e.g. `loganmoyal@github.com`) |
+| `SMTP_PASSWORD` | Your M365 password (or app password if MFA is on) |
 
-### Step 3 — Enable GitHub Actions
+> **If SMTP is blocked by IT:** Use a free personal email relay like [Resend](https://resend.com) — just ask and I can update the code to use that instead.
+
+### Step 3 — Enable GitHub Actions & First Run
 
 1. Go to the **Actions** tab in your repo
 2. Click **"I understand my workflows, go ahead and enable them"**
-3. Click **Run workflow** → **Run workflow** to test it immediately
+3. Click **Run workflow** → **Run workflow** to kick off the first run
+
+> **First run = seed only.** It silently saves all current listings and sends no email. Every run after that only alerts you to brand-new listings.
+
+---
+
+## ⏸ Pausing / Disabling the Bot
+
+To pause alerts:
+1. Go to **Actions** tab → click **SF Apartment Alert Bot**
+2. Click the **•••** (three dots) menu → **Disable workflow**
+
+To resume: same steps → **Enable workflow**
+
+> GitHub also auto-disables scheduled workflows after **60 days of repo inactivity** — just re-enable it if that happens.
 
 ---
 

@@ -9,8 +9,12 @@ from email.mime.multipart import MIMEMultipart
 # ── Configuration ────────────────────────────────────────────────────────────
 MAX_PRICE = 4000
 ALERT_EMAIL = "loganmoyal@github.com"
-GMAIL_USER = os.environ.get("GMAIL_USER")
-GMAIL_APP_PASSWORD = os.environ.get("GMAIL_APP_PASSWORD")
+
+# M365 / Office 365 SMTP credentials (set as GitHub Actions secrets)
+SMTP_USER     = os.environ.get("SMTP_USER")       # your M365 email address
+SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD")   # your M365 password or app password
+SMTP_SERVER   = "smtp.office365.com"
+SMTP_PORT     = 587
 
 # Anchor points with max straight-line walking radius in miles
 # (straight-line * ~1.3 ≈ actual city walking distance)
@@ -88,7 +92,7 @@ def save_seen(seen):
 # ── Email ─────────────────────────────────────────────────────────────────────
 
 def send_email(matches):
-    if not GMAIL_USER or not GMAIL_APP_PASSWORD:
+    if not SMTP_USER or not SMTP_PASSWORD:
         print("⚠️  Email credentials not set — skipping email.")
         return
 
@@ -120,13 +124,15 @@ def send_email(matches):
 
     msg = MIMEMultipart("alternative")
     msg["Subject"] = subject
-    msg["From"] = GMAIL_USER
+    msg["From"] = SMTP_USER
     msg["To"] = ALERT_EMAIL
     msg.attach(MIMEText(html, "html"))
 
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-        server.login(GMAIL_USER, GMAIL_APP_PASSWORD)
-        server.sendmail(GMAIL_USER, ALERT_EMAIL, msg.as_string())
+    with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
+        server.ehlo()
+        server.starttls()
+        server.login(SMTP_USER, SMTP_PASSWORD)
+        server.sendmail(SMTP_USER, ALERT_EMAIL, msg.as_string())
 
     print(f"✅ Email sent with {count} match(es).")
 
@@ -135,7 +141,11 @@ def send_email(matches):
 
 def run():
     seen = load_seen()
+    is_first_run = len(seen) == 0  # Seed mode: don't alert on first run
     new_matches = []
+
+    if is_first_run:
+        print("🌱 First run detected — seeding existing listings silently (no email). Future new listings will trigger alerts.")
 
     for feed_url in CRAIGSLIST_FEEDS:
         print(f"Fetching: {feed_url}")
@@ -183,6 +193,11 @@ def run():
                 print(f"  ✓ MATCH: {title}")
 
     save_seen(seen)
+
+    if is_first_run:
+        print(f"\n✅ Seed complete. {len(seen)} existing listings saved. Bot is now watching for new ones.")
+        return
+
     print(f"\nDone. {len(new_matches)} new match(es) | {len(seen)} total listings seen.")
 
     if new_matches:
