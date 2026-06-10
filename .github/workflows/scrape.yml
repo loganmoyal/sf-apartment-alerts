@@ -1,0 +1,40 @@
+name: SF Apartment Alert Bot
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run apartment scraper
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+        run: python scraper.py
+
+      - name: Save updated seen listings to repo
+        run: |
+          git config user.name  "Apartment Alert Bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add seen_listings.json
+          git diff --staged --quiet || git commit -m "chore: update seen listings [skip ci]"
+          git push
